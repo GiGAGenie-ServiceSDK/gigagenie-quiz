@@ -17,7 +17,6 @@ GiGA Genie 서비스SDK를 이용한 단어 퀴즈 게임입니다.
 			    console.log("gigagenie.voice.setVoiceFilter - result_cd:" + result_cd);
 			    console.log("gigagenie.voice.setVoiceFilter - result_msg:" + result_msg);
 			    console.log("gigagenie.voice.setVoiceFilter - extra:" + JSON.stringify(extra));
-			    //alert("설정 완료\nresult_cd=" + result_cd + "\nresult_msg=" + result_msg);
 		});
 	};
 
@@ -25,21 +24,17 @@ GiGA Genie 서비스SDK를 이용한 단어 퀴즈 게임입니다.
  
         gigagenie.voice.onVoiceFilterMsg = function(message) {
 		      var msg = "음성인식 결과 : " + message;
-		      //alert(msg);
 		      //다시하기
 		      if (message.indexOf("다시") >= 0) {
 			      refresh();//다시
 		      }
 		      //정답 확인 시도
 		      else if (message.indexOf("정답") >= 0) {
-			      //var answer_txt = message.replace("정답", "");
 			      var answer_txt = message.replace("정답", "").replace(/ /gi, "");
 			
 			      var strArray = message.split(" ");
 			      var extractAnswer = strArray[1];
-			      //alert(message);
 			
-			      //$("#input_answer").val(answer_txt);//텍스트 입력
 			      $("#input_answer").val(extractAnswer);//텍스트 입력
 			      go();//정답확인
 		      }
