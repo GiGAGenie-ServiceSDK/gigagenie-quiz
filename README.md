@@ -20,7 +20,7 @@ GiGA Genie 서비스SDK를 이용한 단어 퀴즈 게임입니다.
 		});
 	    };
 
- 2. `voice.onVoiceFilterMsg`로 음성 필터 적용 메시지 수신을 설정했습니다.
+ 2. `voice.onVoiceFilterMsg`로 음성 필터 적용 메시지 수신을 설정합니다.
  
         gigagenie.voice.onVoiceFilterMsg = function(message) {
 		      var msg = "음성인식 결과 : " + message;
