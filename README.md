@@ -18,7 +18,7 @@ GiGA Genie 서비스SDK를 이용한 단어 퀴즈 게임입니다.
 			    console.log("gigagenie.voice.setVoiceFilter - result_msg:" + result_msg);
 			    console.log("gigagenie.voice.setVoiceFilter - extra:" + JSON.stringify(extra));
 		});
-	};
+	    };
 
  2. `voice.onVoiceFilterMsg`로 음성 필터 적용 메시지 수신을 설정했습니다.
  
