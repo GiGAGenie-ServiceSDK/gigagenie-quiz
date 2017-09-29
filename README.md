@@ -3,7 +3,7 @@
 GiGA Genie 서비스SDK를 이용한 단어 퀴즈 게임입니다. 
 8초 간격으로 힌트를 보여주고 퀴즈 정답을 맞추는 게임입니다.
 
-![quiz](https://user-images.githubusercontent.com/32326946/31001723-dcf77d22-a520-11e7-870f-0f9a8a2aaa82.png)
+![quiz](https://user-images.githubusercontent.com/32326946/31002221-3a035f92-a524-11e7-9f1e-1e8b25130654.png)
 
 ### 사용한 API
 음성 필터 API를 이용하여 발화로 '정답', '힌트'를 할 수 있도록 구현했습니다.
