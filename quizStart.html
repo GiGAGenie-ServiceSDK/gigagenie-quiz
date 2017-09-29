@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Quiz Web</title>
+
+<script type="text/javascript" src="https://svcapi.gigagenie.ai/sdk/v1.0/js/gigagenie.js"></script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="/img/clickspark.js"></script>
+
+<script type="text/javascript">
+	var apistatus = 0;
+	var options = {};
+	
+	//변수 초기화
+	//var quizNo = Math.floor((Math.random() * 5) + 1);
+	//window.location.href = 'quizStart_'+quizNo+'.html';
+	var idx = Math.floor((Math.random() * 40) + 1);// 일단 40개 중 random 선택
+	var hint1_txt = "";
+	var hint2_txt = "";
+	var hint3_txt = "";
+	var hint4_txt = "";
+	var answer_txt = "";
+	var star_txt = "";
+	var category_txt = "";
+	
+	var hintCnt = 0;
+	var end = 0;
+	
+	
+	//initialize api (gigagenie)
+	function init() {
+		//$(".point_text").css("visibility","hidden");//처음엔 점수 보여주지 않음
+		//$(".point_text").css("background-image","url('img/hint_select_back.png')");//처음엔 점수 보여주지 않음
+		//sendTTS("안녕하세요 ");
+		
+		
+		//data가 있는 경우 임의의 항목 select & quiz auto start
+		selectQuiz(idx);
+
+		options = {};
+		options.apikey = "";
+		options.keytype = "GBOXCOMM";
+		gigagenie.init(options, function(result_cd, result_msg, extra) {
+			if (result_cd === 200) {
+				console.log("initialize success, appid:" + extra.appid);
+				//alert("initialize success, appid:" + extra.appid);
+				
+				//quiz set keywork
+				console.log("keyword setting");
+				setVoiceFilter();
+				
+				//안내 TTS
+				sendTTS("지니를 호출하고 정답 사과 와 같이 말씀해주세요");
+			}
+		});
+	};
+	
+	
+	function selectQuiz(idx){
+			//create db
+			// This works on all devices/browsers, and uses IndexedDBShim as a final fallback 
+			var indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB || window.shimIndexedDB;
+			
+			// Open (or create) the database
+			var open = indexedDB.open("MyDatabase", 1);
+			
+			// Create the schema
+			open.onupgradeneeded = function() {
+			    var db = open.result;
+			    var store = db.createObjectStore("MyObjectStore", {keyPath: "id"});
+			    //var index = store.createIndex("NameIndex", ["name.last", "name.first"]);
+			};
+			
+			open.onsuccess = function() {
+			    // Start a new transaction
+			    var db = open.result;
+			    var tx = db.transaction("MyObjectStore", "readwrite");
+			    var store = tx.objectStore("MyObjectStore");
+			    //var index = store.index("NameIndex");
+			
+			    // Add some data
+/* 				store.put({id: 1, hint1: "록펠러", hint2: "아스팔트", hint3: "검은 황금", hint4: "땅에서 나는 에너지", answer: "석유", star: "**"});
+				store.put({id: 2, hint1: "오리섬", hint2: "하늘공원", hint3: "쓰레기 매립장", hint4: "난꽃과 영지의 섬", answer: "난지도", star: "***"});
+				store.put({id: 3, hint1: "융선", hint2: "범죄수사", hint3: "주민등록증", hint4: "손가락 끝마디", answer: "지문", star: "**"});
+				store.put({id: 4, hint1: "방울", hint2: "일년감", hint3: "원산지 남아메리카", hint4: "축제 - 라 토마티나", answer: "토마토", star: "***"});
+				store.put({id: 5, hint1: "발전", hint2: "날개", hint3: "돈키호테", hint4: "네덜란드", answer: "풍차", star: "**"});
+				store.put({id: 6, hint1: "피자의 재료", hint2: "원산지 터키", hint3: "만화 '뽀빠이' 연인", hint4: "식용유의 재료", answer: "올리브", star: "***"});
+				store.put({id: 7, hint1: "화장품의 재료", hint2: "지구의 창자", hint3: "다윈의 연구", hint4: "우리말 - 디룡이", answer: "지렁이", star: "***"});
+				store.put({id: 8, hint1: "천왕성", hint2: "클라프로트", hint3: "원자번호 92번", hint4: "천연 방사성원소", answer: "우라늄", star: "***"});
+				store.put({id: 9, hint1: "하루 다섯번 기도", hint2: "무역중계지", hint3: "사우디아라비아", hint4: "어떤 지역의 중심", answer: "메카", star: "**"});
+				store.put({id: 10, hint1: "국화과 한해살이풀", hint2: "피라미드 벽화", hint3: "진통, 최면효과", hint4: "먹으면 잠오는 채소", answer: "상추", star: "**"});
+ */
+				
+
+
+				store.put({id: 1, category: "국가", hint1: "중립국", hint2: "은행", hint3: "시계", hint4: "유럽의 지붕", answer: "스위스", star: "***"});
+				store.put({id: 2, category: "국가", hint1: "덕국", hint2: "맥주", hint3: "소시지", hint4: "자동차", answer: "독일", star: "**"});
+				store.put({id: 3, category: "국가", hint1: "삼보", hint2: "톨스토이", hint3: "아라사", hint4: "소비에트", answer: "러시아", star: "***"});
+				store.put({id: 4, category: "국가", hint1: "축제", hint2: "카포에라", hint3: "아마존", hint4: "삼바", answer: "브라질", star: "***"});
+				store.put({id: 5, category: "국가", hint1: "토마토", hint2: "투우", hint3: "마드리드", hint4: "에스파냐", answer: "스페인", star: "***"});
+				store.put({id: 6, category: "국가", hint1: "차도", hint2: "뉴델리", hint3: "커리", hint4: "간디", answer: "인도", star: "**"});
+				store.put({id: 7, category: "국가", hint1: "도버해협", hint2: "육각형", hint3: "이다도시", hint4: "나폴레옹", answer: "프랑스", star: "***"});
+				store.put({id: 8, category: "국가", hint1: "최댓값", hint2: "아스텍제국", hint3: "퀘사디아", hint4: "타코", answer: "멕시코", star: "***"});
+				store.put({id: 9, category: "국가", hint1: "휘게 라이프", hint2: "우유", hint3: "행복지수 1위", hint4: "코펜하겐", answer: "덴마크", star: "***"});
+				store.put({id: 10, category: "국가", hint1: "뮤지컬", hint2: "피그스", hint3: "신전", hint4: "산토리니", answer: "그리스", star: "***"});
+
+
+
+				store.put({id: 11, category: "인물", hint1: "누나", hint2: "태극기", hint3: "고등학생", hint4: "3.1운동", answer: "유관순", star: "***"});
+				store.put({id: 12, category: "인물", hint1: "노비", hint2: "자격루", hint3: "세종", hint4: "물시계", answer: "장영실", star: "***"});
+				store.put({id: 13, category: "인물", hint1: "전광렬", hint2: "구암", hint3: "어의", hint4: "동의보감", answer: "허준", star: "**"});
+				store.put({id: 14, category: "인물", hint1: "도로", hint2: "평발", hint3: "캡틴박", hint4: "멘체스터", answer: "박지성", star: "***"});
+				store.put({id: 15, category: "인물", hint1: "1592", hint2: "백원", hint3: "난중일기", hint4: "명량", answer: "이순신", star: "***"});
+				store.put({id: 16, category: "인물", hint1: "참모중장", hint2: "하얼빈", hint3: "누가 죄인인가", hint4: "이토 히로부미", answer: "안중근", star: "***"});
+				store.put({id: 17, category: "인물", hint1: "서자", hint2: "호부호형", hint3: "도적", hint4: "허균", answer: "홍길동", star: "***"});
+				store.put({id: 18, category: "인물", hint1: "음악교과서", hint2: "아이들", hint3: "대통령", hint4: "발해를 꿈꾸며", answer: "서태지", star: "***"});
+				store.put({id: 19, category: "인물", hint1: "친구", hint2: "하와이", hint3: "고소영", hint4: "원빈", answer: "장동건", star: "***"});
+				store.put({id: 20, category: "인물", hint1: "사자관", hint2: "가평 군수", hint3: "떡", hint4: "사대명필", answer: "한석봉", star: "***"});
+
+
+				store.put({id: 21, category: "동물", hint1: "파충류", hint2: "닌자", hint3: "장수", hint4: "등딱지", answer: "거북이", star: "***"});
+				store.put({id: 22, category: "동물", hint1: "대머리", hint2: "숙회", hint3: "빨판", hint4: "8개", answer: "문어", star: "**"});
+				store.put({id: 23, category: "동물", hint1: "줄무늬", hint2: "펀치", hint3: "뱅갈", hint4: "임금왕", answer: "호랑이", star: "***"});
+				store.put({id: 24, category: "동물", hint1: "래퍼", hint2: "얼룩", hint3: "육상선수", hint4: "수렵표범", answer: "치타", star: "**"});
+				store.put({id: 25, category: "동물", hint1: "나무", hint2: "잔나비띠", hint3: "엉덩이", hint4: "개코", answer: "원숭이", star: "***"});
+				store.put({id: 26, category: "동물", hint1: "열차", hint2: "인도", hint3: "아프리카", hint4: "소방관", answer: "코끼리", star: "***"});
+				store.put({id: 27, category: "동물", hint1: "무당", hint2: "쥐라기", hint3: "황소", hint4: "혀", answer: "개구리", star: "***"});
+				store.put({id: 28, category: "동물", hint1: "이집트", hint2: "점프", hint3: "야행성", hint4: "괭", answer: "고양이", star: "***"});
+				store.put({id: 29, category: "동물", hint1: "물이 없다", hint2: "유칼립투스", hint3: "어부바", hint4: "호주", answer: "코알라", star: "***"});
+				store.put({id: 30, category: "동물", hint1: "백구", hint2: "괭이", hint3: "바닷가", hint4: "새우깡", answer: "갈매기", star: "***"});
+
+
+				store.put({id: 31, category: "스포츠", hint1: "마지막 승부", hint2: "강백호", hint3: "덩크슛", hint4: "조던", answer: "농구", star: "**"});
+				store.put({id: 32, category: "스포츠", hint1: "제빵왕", hint2: "테니스", hint3: "엣지", hint4: "핑퐁", answer: "탁구", star: "**"});
+				store.put({id: 33, category: "스포츠", hint1: "불펜", hint2: "마운드", hint3: "홈런", hint4: "베이브루스", answer: "야구", star: "**"});
+				store.put({id: 34, category: "스포츠", hint1: "왕자", hint2: "윔블던", hint3: "페더러", hint4: "샤라포바", answer: "테니스", star: "***"});
+				store.put({id: 35, category: "스포츠", hint1: "로빈훗", hint2: "최종병기", hint3: "기보배", hint4: "주몽의 후예", answer: "양궁", star: "**"});
+				store.put({id: 36, category: "스포츠", hint1: "국기원", hint2: "겨루기", hint3: "품새", hint4: "검은띠", answer: "태권도", star: "***"});
+				store.put({id: 37, category: "스포츠", hint1: "보드게임", hint2: "단수", hint3: "미생", hint4: "알파고", answer: "바둑", star: "**"});
+				store.put({id: 38, category: "스포츠", hint1: "폭스바겐", hint2: "클럽", hint3: "싱글", hint4: "버디", answer: "골프", star: "**"});
+				store.put({id: 39, category: "스포츠", hint1: "전쟁", hint2: "영국", hint3: "차범근", hint4: "월드컵", answer: "축구", star: "**"});
+				store.put({id: 40, category: "스포츠", hint1: "교도소", hint2: "음료수", hint3: "헬스장", hint4: "라켓볼", answer: "스쿼시", star: "***"});
+
+				
+				
+			    // Query the data
+			    var getRandom = store.get(idx);
+			
+			    getRandom.onsuccess = function() {
+					hint1_txt = getRandom.result.hint1;
+					hint2_txt = getRandom.result.hint2;
+					hint3_txt = getRandom.result.hint3;
+					hint4_txt = getRandom.result.hint4;
+					answer_txt = getRandom.result.answer;
+					star_txt = getRandom.result.star;
+					category_txt = getRandom.result.category;
+
+					$("#answer").text("정답 : "+star_txt);//텍스트 입력 => 정답 : ***
+					$("#question").text("["+category_txt+"]  다음은 무엇에 대한 설명인가요?");//카테고리 추가
+					autoOpen()//자동 힌트 열기 시작
+			    };
+			
+			    // Close the db when the transaction is done
+			    tx.oncomplete = function() {
+			        db.close();
+			    };
+			}
+			
+	}
+	
+	//getVoiceText
+	function getVoiceText() {
+		options = {};
+		options.voicemsg = "정답을 말씀해주세요.";
+		gigagenie.voice.getVoiceText(options, function(result_cd, result_msg, extra) {
+			console.log("gigagenie.voice.getVoiceText2 - result_cd:" + result_cd);
+			console.log("gigagenie.voice.getVoiceText2 - result_msg:" + result_msg);
+			console.log("gigagenie.voice.getVoiceText2 - extra:" + JSON.stringify(extra));
+			var msg = "음성인식 결과 : " + extra.voicetext;
+			//alert(msg);
+			$("#input_answer").val(extra.voicetext);//텍스트 입력
+			go();//정답확인
+		});
+
+	};
+	//4.2.3 sendTTS 
+	function sendTTS(tts) {
+		options = {};
+		options.ttstext = tts;
+		gigagenie.voice.sendTTS(options,
+				function(result_cd, result_msg, extra) {
+					console.log("gigagenie.voice.sendTTS - result_cd:" + result_cd);
+					console.log("gigagenie.voice.sendTTS - result_msg:" + result_msg);
+					console.log("gigagenie.voice.sendTTS - extra:" + JSON.stringify(extra));
+				});
+	};
+
+	//4.2.5 onRequestClose
+	gigagenie.voice.onRequestClose = function() {
+		console.log("close event receive");
+		alert("종료요청을 수신했습니다.");
+		requestclose();
+	};
+	//4.2.6 svcFinished
+	function requestclose() {
+		console.log("request close");
+		options = {};
+		gigagenie.voice.svcFinished(options, function(result_cd, result_msg,
+				extra) {
+			console.log("svcFinished");
+			if (result_cd === 200) {
+				console.log("service finish success");
+				//		alert("페이지를 종료합니다");
+			}
+			;
+		});
+	};
+
+	//setVoiceFilter
+	function setVoiceFilter() {
+		options = {};
+		options.keyword = [ "정답", "힌트", "다시" ];
+		gigagenie.voice.setVoiceFilter(options, function(result_cd, result_msg, extra) {
+			if (result_cd === 200) {
+				//alert(result_cd);
+			}
+			console.log("gigagenie.voice.setVoiceFilter - result_cd:" + result_cd);
+			console.log("gigagenie.voice.setVoiceFilter - result_msg:" + result_msg);
+			console.log("gigagenie.voice.setVoiceFilter - extra:" + JSON.stringify(extra));
+			//alert("설정 완료\nresult_cd=" + result_cd + "\nresult_msg=" + result_msg);
+		});
+	};
+
+	//resetVoiceFilter
+	function resetVoiceFilter() {
+		options = {};
+		gigagenie.voice.resetKeyword(options, function(result_cd, result_msg, extra) {
+				console.log("gigagenie.voice.resetVoiceFilter - result_cd:" + result_cd);
+				console.log("gigagenie.voice.resetVoiceFilter - result_msg:" + result_msg);
+				console.log("gigagenie.voice.resetVoiceFilter - extra:" + JSON.stringify(extra));
+				alert("Keyword 초기화 완료\nresult_cd=" + result_cd + "\nresult_msg=" + result_msg);
+		});
+	};
+
+	//onVoiceMessage quiz Start - 정답, 힌트 --------------------------------------------------------------------------------
+	gigagenie.voice.onVoiceFilterMsg = function(message) {
+		var msg = "음성인식 결과 : " + message;
+		//alert(msg);
+		//다시하기
+		if (message.indexOf("다시") >= 0) {
+			refresh();//다시
+		}
+		//정답 확인 시도
+		else if (message.indexOf("정답") >= 0) {
+			//var answer_txt = message.replace("정답", "");
+			var answer_txt = message.replace("정답", "").replace(/ /gi, "");
+			
+			var strArray = message.split(" ");
+			var extractAnswer = strArray[1];
+			//alert(message);
+			
+			//$("#input_answer").val(answer_txt);//텍스트 입력
+			$("#input_answer").val(extractAnswer);//텍스트 입력
+			go();//정답확인
+		}
+	};
+
+	//onVoiceMessage quiz End - 정답, 힌트 --------------------------------------------------------------------------------
+	//4.2.11 onStartKWS
+	gigagenie.voice.onStartKWS=function(){
+		console.log("onStartKWS");
+//		alert("KWS 수신");
+		
+		//정답을 아직 못 맞춘 경우 end == 0 // 맞춘 경우 end == 1
+		if(end == 0){
+			clearInterval(startTimer);
+			clearInterval(resumeTimer);
+			//3초간 일시정지하도록 작성
+			wait(3000);
+			//이어서 시작
+			countDownResume(remaintime);
+		}
+
+	};
+
+	////
+	function refresh() {
+		location.reload();
+		//random quiz로 이동
+	};
+
+	function go() {
+		if ($("#input_answer").val() == "") {
+			//do nothing
+		} else {
+			if ($("#input_answer").val() == answer_txt) {
+				sendTTS("정답입니다");
+				$("#answer").text("정답 : "+answer_txt);
+				$("#answer_result1").text("정답입니다. ");
+				$("#answer_result2").text($("#point").text());
+				$("#answer_result3").text("점을 획득하였습니다.");
+				//정답 맞출시 힌트 오픈 중단
+				//clearInterval(timerStart);
+				clearInterval(startTimer);
+				clearInterval(resumeTimer);
+				end = 1;
+			} else {
+				sendTTS("정답이 아닙니다");
+				$("#answer_result1").text("정답이 아닙니다.");
+				$("#answer_result2").text("");
+				$("#answer_result3").text("");
+			}
+		}
+	};
+
+	function hint1() {
+		//힌트 확인시 획득 가능 점수 차감
+		var point = $("#point").text();
+		var newPoint = point - 1;
+		$(".point_text").css("visibility","visible");
+		
+		$("#hint1").text(hint1_txt);
+		$("#hint1").css("background-image", "url('/img/hint_select_back.png'),url('/img/hint_select_bar.png')");
+		$("#hint1").css("color", "#f1f32f");
+
+		$("#point").text(newPoint);
+		clickSpark.setParticleImagePath('/img/particle-2.png');
+		clickSpark.fireParticles($('#hint1'));
+		options.ttstext = '1번 힌트 입니다';
+		sendTTS(options.ttstext);
+	};
+	function hint2() {
+		var point = $("#point").text();
+		var newPoint = point - 1;
+		$(".point_text").css("visibility","visible");
+
+		$("#hint2").text(hint2_txt);
+		$("#hint2").css("background-image", "url('/img/hint_select_back.png'),url('/img/hint_select_bar.png')");
+		$("#hint2").css("color", "#f1f32f");
+
+		$("#point").text(newPoint);
+		clickSpark.setParticleImagePath('/img/particle-2.png');
+		clickSpark.fireParticles($('#hint2'));
+		options.ttstext = '2번 힌트 입니다';
+		sendTTS(options.ttstext);
+	};
+	function hint3() {
+		var point = $("#point").text();
+		var newPoint = point - 1;
+		$(".point_text").css("visibility","visible");
+
+		$("#hint3").text(hint3_txt);
+		$("#hint3").css("background-image", "url('/img/hint_select_back.png'),url('/img/hint_select_bar.png')");
+		$("#hint3").css("color", "#f1f32f");
+
+		$("#point").text(newPoint);
+		clickSpark.setParticleImagePath('/img/particle-2.png');
+		clickSpark.fireParticles($('#hint3'));
+		options.ttstext = '3번 힌트 입니다';
+		sendTTS(options.ttstext);
+	};
+	function hint4() {
+		var point = $("#point").text();
+		var newPoint = point - 1;
+		$(".point_text").css("visibility","visible");
+
+		$("#hint4").text(hint4_txt);
+		$("#hint4").css("background-image", "url('/img/hint_select_back.png'),url('/img/hint_select_bar.png')");
+		$("#hint4").css("color", "#f1f32f");
+
+		$("#point").text(newPoint);
+		clickSpark.setParticleImagePath('/img/particle-2.png');
+		clickSpark.fireParticles($('#hint4'));
+		options.ttstext = '4번 힌트 입니다';
+		sendTTS(options.ttstext);
+	};
+
+	$(document).ready(
+			function() {
+				$("#point").text("5");
+
+/* 				$("#hint1").click(function() {
+					//hint2 이 열릴때 동작
+					if ($("#hint1").text() == "힌트1") {
+						hint1();
+					}
+				});
+				$("#hint2").click(function() {
+					//hint2 이 열릴때 동작
+					if ($("#hint2").text() == "힌트2") {
+						hint2();
+					}
+				});
+				$("#hint3").click(function() {
+					//hint3 이 열릴때 동작
+					if ($("#hint3").text() == "힌트3") {
+						hint3();
+					}
+				});
+				$("#hint4").click(function() {
+					//hint4 이 열릴때 동작
+					if ($("#hint4").text() == "힌트4") {
+						hint4();
+					}
+				});
+ */
+				$("#input").click(
+				function() {
+					if ($("#input_answer").val() == "") {
+						//do nothing
+					} else {
+						if ($("#input_answer").val() == answer_txt) {
+							sendTTS("정답입니다");
+							$("#answer").text("정답 : "+answer_txt);
+							$("#answer").css("color", "#f1f32f");
+							$("#answer_result1").text("정답입니다. ");
+							$("#answer_result2").text($("#point").text());
+							$("#answer_result3").text("점을 획득하였습니다.");
+							//정답 맞출시 힌트 오픈 중단
+							//clearInterval(timerStart);
+							clearInterval(startTimer);
+							clearInterval(resumeTimer);
+							end = 1;
+						} else {
+							sendTTS("정답이 아닙니다");
+							$("#answer_result1").text("정답이 아닙니다");
+							$("#answer_result2").text("");
+							$("#answer_result3").text("");
+						}
+					}
+				});
+			});
+
+	function autoOpen(){
+		// n 초 카운트다운
+		 countDown();
+		// n 초 간격으로 힌트 오픈
+		// timerStart = setInterval("openHint()",8000);
+ 	}
+	
+	function openHint(){
+		if(hintCnt==0){
+			hint1();
+			hintCnt = hintCnt+1;
+			countDown();
+		}
+		else if(hintCnt==1){
+			hint2();
+			hintCnt = hintCnt+1;
+			countDown();
+		}
+		else if(hintCnt==2){
+			hint3();
+			hintCnt = hintCnt+1;
+			countDown();
+		}
+		else if(hintCnt==3){
+			hint4();
+			hintCnt = hintCnt+1;
+			//countDown(); // all hint open
+		    document.getElementById("timer_text").textContent = "";
+		}
+		else{
+			clearInterval(timerStart);
+		}
+	}
+	
+	var remaintime;
+	var startTimer;
+	function countDown(){
+		var timeleft = 8;
+	    startTimer = setInterval(function(){
+	    timeleft--;
+	    remaintime = timeleft;
+	    document.getElementById("timer").textContent = timeleft;
+		    if(timeleft <= 0){
+		        clearInterval(startTimer);//남은시간 0초 되면 카운트다운 중단
+				if(hintCnt==0){
+					hint1();
+					hintCnt = hintCnt+1;
+					countDown();
+				}
+				else if(hintCnt==1){
+					hint2();
+					hintCnt = hintCnt+1;
+					countDown();
+				}
+				else if(hintCnt==2){
+					hint3();
+					hintCnt = hintCnt+1;
+					countDown();
+				}
+				else if(hintCnt==3){
+					hint4();
+					hintCnt = hintCnt+1;
+					//countDown(); // all hint open
+				    document.getElementById("timer_text").textContent = "";
+				}
+				else{
+					//clearInterval(timerStart);do nothing
+				}
+		    }
+	    },1000);
+	}
+	
+	var resumeTimer;
+	function countDownResume(remain){
+		//카운트다운 표시 remain to zero
+		var resumetime = remain;
+	    resumeTimer = setInterval(function(){
+	    resumetime--;
+	    remaintime = resumetime;
+	    document.getElementById("timer").textContent = resumetime;
+		    if(resumetime <= 0){
+		        clearInterval(resumeTimer);//남은시간 0초 되면 카운트다운 중단
+				if(hintCnt==0){
+					hint1();
+					hintCnt = hintCnt+1;
+					countDown();
+				}
+				else if(hintCnt==1){
+					hint2();
+					hintCnt = hintCnt+1;
+					countDown();
+				}
+				else if(hintCnt==2){
+					hint3();
+					hintCnt = hintCnt+1;
+					countDown();
+				}
+				else if(hintCnt==3){
+					hint4();
+					hintCnt = hintCnt+1;
+					//countDown(); // all hint open
+				    document.getElementById("timer_text").textContent = "";
+				}
+				else{
+					//clearInterval(timerStart);do nothing
+				}
+		        //countDown();//remain 초 이후 hint open 및 countDown() 호출
+		    }
+	    },1000);
+	}
+	
+	function wait(msec){
+		var start = new Date().getTime();
+		var cur = start;
+		while(cur - start < msec)
+			{
+				cur = new Date().getTime();
+			}
+	}
+	
+	function sleep(next){
+		window.setTimeout(next, 3000)
+	}
+	
+
+</script>
+<style>
+#point {
+	font-size: 1em;
+	display: inline;
+}
+
+#hint1, #hint2, #hint3, #hint4 {
+	text-align: center;
+	padding: 40px 0 0 0;
+	display: inline-block;
+	width: 180px;
+	height: 66px;
+	vertical-align: middle;
+	overflow: hidden;
+	text-overflow: ellipsis;
+
+	background-image: url('/img/hint_bar.png');
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
+
+	font-size: 24px;
+	
+}
+
+div.hint {
+	margin: auto;
+	
+}
+
+
+div.center_text, .point_text, #answer, #answer_result {
+	text-align: center;
+	margin: auto;
+}
+div.answer_text{
+	text-align: center;
+	margin: auto;
+	height: 30px;
+}
+
+#answer {
+	font-size: 1.5em;
+	text-align: center;
+	margin: auto;
+}
+
+#answer_result1, #answer_result2, #answer_result3 {
+	display: inline;
+	text-align: center;
+	margin: auto;
+	color:	#f1f32f;
+	font-size: 24px;
+	height: 50px;
+}
+
+
+div.question {
+	font-size: 32px;
+	text-align: center;
+	margin: auto;
+}
+
+.bottom {
+	align: center;
+	width: 420px;
+	height: 50px;
+	margin: auto;
+	padding: auto;
+	
+}
+
+#input_answer, #input {
+	margin: auto;
+	padding: auto;
+	display: inline-block;
+
+	color : #FFFFFF;
+	font-size : 24px;
+	font-weight : bold;
+	vertical-align:bottom;
+
+}
+#input_answer{
+	border:none; 
+	background: url('/img/text_bar.png'); 
+	width: 316px; 
+	height: 48px;
+	text-align: center;
+}
+#input{
+	width: 92px; 
+	height: 50px; 
+	background-image: url('/img/submit_btn.png');
+}
+
+#test {
+	text-align: center;
+	padding: 60px 0 0 0;
+	display: inline-block;
+	width: 23%;
+	height: 100px;
+	vertical-align: middle;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	background-color: #6DD66D;
+}
+
+#refresh{
+	float:left;
+	margin-left:82%;
+	width: 134px; 
+	height: 84px; 
+	background-image: url('/img/restart_btn.png');" 
+}
+
+body{
+	background-image: url('/img/background.png');
+	background-repeat: no-repeat;
+	background-size: 100% 100%;
+	color : #FFFFFF;
+	
+	font-weight : bold;
+	width:	100%;
+}
+.point_text{
+	background-image: url('/img/score_bar.png');
+	background-size: contain;
+	width: 287px;
+	height: 60px;
+	font-size : 36px;
+
+	line-height : 60px;
+}
+#timer_text{
+	margin-left:13%;
+	font-size : 24px;
+	color:	#f1f32f;
+}
+
+</style>
+
+<!-- 	border: 3px solid red;
+ -->
+</head>
+<body onload="init();" >
+	<br>
+	<br>
+	<br>
+	<br>
+	<div class="question" id="question">다음은 무엇에 대한 설명인가요?</div>
+	<br>
+	<span id="timer_text"><span id="timer">8</span> 초 후 힌트 오픈</span>
+	<div class="point_text">
+		도전점수 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   
+		<div id="point">5</div>
+		점
+	</div>
+	<br>
+	<div class="center_text">
+		<div class="hint" id="hint1">힌트1</div>
+		<div class="hint" id="hint2">힌트2</div>
+		<div class="hint" id="hint3">힌트3</div>
+		<div class="hint" id="hint4">힌트4</div>
+	</div>
+	<br>
+	<div id="answer">정답 :</div>
+	<br>
+	<div class="answer_text">
+		<div id="answer_result1"> </div>
+		<div id="answer_result2"> </div>
+		<div id="answer_result3"> </div>
+	</div>
+	<br>
+	<div class="bottom">		
+ 		<input id="input_answer" type="text" value="" size="10"> 
+ 		<div id="input" onClick="go();"></div>
+
+	</div>
+ 		<div id="refresh" onClick="refresh();"></div>
+	<br>
+	<br>
+	<br>
+	<br>
+	<br>
+</body>
+</html>
