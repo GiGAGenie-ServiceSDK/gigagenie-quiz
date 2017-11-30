@@ -41,7 +41,8 @@
 
 		options = {};
 		options.apikey = "";
-		options.keytype = "GBOXDEVM";
+		options.keytype="GBOXDEVM"; // 개발자모드를 설정하고 사용하세요.
+                //options.keytype="GBOXCOMM"; // 개발자센터에서 승인이 되어야 사용하실 수 있습니다.
 		gigagenie.init(options, function(result_cd, result_msg, extra) {
 			if (result_cd === 200) {
 				console.log("initialize success, appid:" + extra.appid);
